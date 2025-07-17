@@ -3,14 +3,17 @@
 Aplicación **ToDo** desarrollada con **React y Vite**, que permite gestionar tareas de manera sencilla y rápida.  
 Con esta app podrás **agregar, marcar como completadas y eliminar tareas**, manteniendo tu día organizado.
 
+
 ---
 
 ## 📌 **Características**
 - ✅ Agregar nuevas tareas.
 - ✅ Marcar tareas como **completadas**.
+- ✅ Editar tareas existentes.
 - ✅ Eliminar tareas.
 - ✅ Diseño **responsive** para móvil y escritorio.
-- ✅ Código modular con **React Hooks**.
+- ✅ Estilos optimizados con Bootstrap 5.
+- ✅ Código estructurado con clases de React (`Component`).
 
 ---
 
