@@ -1,22 +1,19 @@
 import React from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import {Container,Table,Button,Form} from 'react-bootstrap'
-import axios from 'axios'
-import {API_URL} from './enviroment'
+import { Container, Table, Button, Form } from 'react-bootstrap'
 
-class App extends React.Component{
 
-  constructor(props){
+class App extends React.Component {
+  constructor(props) {
     super(props)
-    this.state = (
-      {
-        tareas : [],
-        descripcion:'',
-        estado:'pendiente',
-        id:0,
-        pos:null
-      }
-    )
+    this.state = {
+      tareas: [],
+      descripcion: '',
+      estado: 'pendiente',
+      id: 0,
+      pos: null
+    }
+
     this.cambioDescripcion = this.cambioDescripcion.bind(this)
     this.guardar = this.guardar.bind(this)
     this.mostrar = this.mostrar.bind(this)
@@ -24,158 +21,141 @@ class App extends React.Component{
     this.cambiarEstado = this.cambiarEstado.bind(this)
   }
 
-  componentDidMount(){
-    console.log("cargando tareas...")
-    axios.get(`${API_URL}/tarea`)
-    .then(res=>{
-      console.log(res.data)
-      this.setState({
-        tareas : res.data.content
-      })
-    })
-  }
+componentDidMount() {
+  // Simulamos datos del backend
+  const datosFalsos = [
+    { id: 1, descripcion: 'Aprender React', estado: 'pendiente' },
+    { id: 2, descripcion: 'Hacer una app de tareas', estado: 'completado' }
+  ]
+  this.setState({ tareas: datosFalsos })
+}
 
-  cambioDescripcion(e){
+  cambioDescripcion(e) {
     this.setState({
-      descripcion : e.target.value
+      descripcion: e.target.value
     })
   }
 
-  mostrar(cod,index){
-    axios.get(`${API_URL}/tarea/`+cod)
-    .then(res=>{
-      console.log(res.data.content)
-      this.setState({
-        descripcion:res.data.content.descripcion,
-        id:res.data.content.id,
-        pos:index
-      })
+ mostrar(id, index) {
+  const tarea = this.state.tareas.find(t => t.id === id)
+  this.setState({
+    descripcion: tarea.descripcion,
+    id: tarea.id,
+    pos: index
+  })
+}
+guardar(e) {
+  e.preventDefault()
+
+  if (!this.state.descripcion.trim()) {
+    alert("La descripción no puede estar vacía")
+    return
+  }
+
+  const { id, descripcion, estado } = this.state
+  const nuevaTarea = { id: Date.now(), descripcion, estado }
+
+  if (id > 0) {
+    // Actualizar tarea
+    const temp = [...this.state.tareas]
+    temp[this.state.pos] = { id, descripcion, estado }
+    this.setState({
+      tareas: temp,
+      descripcion: '',
+      id: 0,
+      pos: null
     })
+  } else {
+    // Agregar nueva tarea
+    this.setState(prevState => ({
+      tareas: [...prevState.tareas, nuevaTarea],
+      descripcion: '',
+      id: 0,
+      pos: null
+    }))
   }
+}
 
-  guardar(e){
-    e.preventDefault()
-    let cod = this.state.id
-    const data = {
-      descripcion : this.state.descripcion,
-      estado : this.state.estado
-    }
-    console.log("enviando data al servidor :",data)
-    
-    if(cod>0){
-      //actualizar
-      axios.put(`${API_URL}/tarea/`+cod,data)
-      .then(res=>{
-        let index_tarea = this.state.pos
-        //this.state.tareas[index_tarea] = res.data.content
-        var temp = this.state.tareas
-        temp[index_tarea] = res.data.content
-        this.setState({
-          tareas : temp,
-          descripcion:'',
-          pos:null,
-          id:0
-        })
-      })
-    }
-    else{
-      //insertar
-      axios.post(`${API_URL}/tarea`,data)
-      .then(res=>{
-        console.log("respuesta del servidor :",res.data.content)
-        this.state.tareas.push(res.data.content)
-        var temp = this.state.tareas
-        this.setState({
-          tareas :temp,
-          descripcion:'',
-          id:0,
-          pos:null
-        })
-      })
-    }
-    
-  }
 
-  eliminar(cod){
-    axios.delete(`${API_URL}/tarea/`+cod)
-    .then(res=>{
-      console.log(res.data.content)
-      var temp = this.state.tareas.filter((tarea)=>tarea.id !== res.data.content.id)
-      this.setState({
-        tareas:temp
-      })
-    })
-  }
+ eliminar(id) {
+  const temp = this.state.tareas.filter(t => t.id !== id)
+  this.setState({ tareas: temp })
+}
 
-  cambiarEstado(cod,pos){
-    const data = {
-      estado : 'completado'
-    }
-    axios.patch(`${API_URL}/tarea/`+cod,data)
-    .then(res=>{
-      var temp = this.state.tareas
-      temp[pos] = res.data.content
-      this.setState({
-        tareas:temp
-      })
-    })
-  }
+cambiarEstado(id, pos) {
+  const temp = [...this.state.tareas]
+  temp[pos].estado = 'completado'
+  this.setState({ tareas: temp })
+}
 
-  render(){
-    return(
+  render() {
+    return (
       <div>
         <Container>
-          <h1>Lista de Tareas</h1>
+          <h1 className="my-4">Lista de Tareas</h1>
           <Form onSubmit={this.guardar}>
             <Form.Group className="mb-3">
-              <Form.Control type="text" value={this.state.descripcion}
-              onChange={this.cambioDescripcion}
+              <Form.Control
+                type="text"
+                placeholder="Escribe una tarea"
+                value={this.state.descripcion}
+                onChange={this.cambioDescripcion}
               />
             </Form.Group>
             <Button variant="primary" type="submit">
               Guardar
             </Button>
           </Form>
-          <Table striped bordered hover variant="dark">
+
+          <Table striped bordered hover variant="dark" className="mt-4">
             <thead>
               <tr>
-                <th>Id</th>
-                <th>Descripcion</th>
+                <th>ID</th>
+                <th>Descripción</th>
                 <th>Estado</th>
-                <th>...</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {this.state.tareas.map((tarea,index)=>{
-                return(
-                  <tr key={tarea.id}>
-                    <td>{tarea.id}</td>
-                    <td>{tarea.descripcion}</td>
-                    <td>
-                        <div className="form-check form-switch">
-                          {tarea.estado == 'completado'
-                            ?
-                            <input className="form-check-input" type="checkbox" checked></input>
-                            :
-                            <input className="form-check-input" type="checkbox"></input>
-                          }
-                        </div>
-                    </td>
-                    <td>
-                      <Button variant="success" onClick={()=>this.mostrar(tarea.id,index)}>
-                        Editar
-                      </Button>
-                      <Button variant="warning" onClick={()=>this.cambiarEstado(tarea.id,index)}>
-                        Completar
-                      </Button>
-                      <Button variant="danger" onClick={()=>this.eliminar(tarea.id)}>
-                        Eliminar
-                      </Button>
-                    </td>
-                  </tr>
-                )
-              })}
-              
+              {this.state.tareas.map((tarea, index) => (
+                <tr key={tarea.id}>
+                  <td>{tarea.id}</td>
+                  <td>{tarea.descripcion}</td>
+                  <td>
+                    <div className="form-check form-switch">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={tarea.estado === 'completado'}
+                        readOnly
+                      />
+                    </div>
+                  </td>
+                  <td>
+                    <Button
+                      variant="success"
+                      className="me-2"
+                      onClick={() => this.mostrar(tarea.id, index)}
+                    >
+                      Editar
+                    </Button>
+                    <Button
+                      variant="warning"
+                      className="me-2"
+                      onClick={() => this.cambiarEstado(tarea.id, index)}
+                      disabled={tarea.estado === 'completado'}
+                    >
+                      Completar
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => this.eliminar(tarea.id)}
+                    >
+                      Eliminar
+                    </Button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </Table>
         </Container>
